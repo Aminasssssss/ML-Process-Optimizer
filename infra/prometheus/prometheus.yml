@@ -1,0 +1,18 @@
+global:
+  scrape_interval: 15s
+
+scrape_configs:
+  - job_name: inference-api
+    metrics_path: /metrics
+    static_configs:
+      - targets: ["inference-api:8000"]
+
+  - job_name: frontend-api
+    metrics_path: /metrics
+    static_configs:
+      - targets: ["frontend-api:8001"]
+
+  - job_name: mock-sensor-api
+    metrics_path: /metrics
+    static_configs:
+      - targets: ["mock-sensor-api:8002"]
