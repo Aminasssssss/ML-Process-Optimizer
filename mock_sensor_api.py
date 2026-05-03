@@ -27,7 +27,17 @@ from fastapi.responses import Response
 from prometheus_client import Counter, generate_latest, CONTENT_TYPE_LATEST
 from pydantic import BaseModel
 
-app = FastAPI(title="Mock Plant Sensor API", version="1.0.0")
+from contextlib import asynccontextmanager
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    if os.getenv("MINIO_ENABLED", "false").lower() == "true":
+        asyncio.create_task(_minio_flush_loop())
+    yield
+
+
+app = FastAPI(title="Mock Plant Sensor API", version="1.0.0", lifespan=lifespan)
 app.add_middleware(
     CORSMiddleware, allow_origins=["*"], allow_methods=["*"], allow_headers=["*"]
 )
@@ -150,12 +160,6 @@ for _ in range(90):
 
 
 # ── MinIO background flush ────────────────────────────────────────────────────
-@app.on_event("startup")
-async def _start_minio_flush():
-    if os.getenv("MINIO_ENABLED", "false").lower() == "true":
-        asyncio.create_task(_minio_flush_loop())
-
-
 async def _minio_flush_loop():
     import boto3  # deferred — not installed in compose.frontend.yml
 

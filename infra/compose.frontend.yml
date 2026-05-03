@@ -6,6 +6,8 @@ name: alarm-frontend
 #   frontend-api     host:7501 → ctr:8001  — JWT auth + inference history + live bridge
 #   inference-api    host:7502 → ctr:8000  — ML model server (needs MLflow for full inference)
 #   svelte-ui        host:5173             — Vite dev server
+#   prometheus       host:7503 → ctr:9090  — metrics scraping
+#   grafana          host:7504 → ctr:3000  — dashboards
 #
 # Hyper-V exclusions on this machine cover 7064–7363; host bindings use
 # the 7500-7502 range which is clear of all exclusions.
@@ -23,7 +25,7 @@ services:
     volumes:
       - ../:/workspace
     command: >
-      sh -c "pip install --quiet --no-cache-dir fastapi uvicorn prometheus-client &&
+      sh -c "pip install --quiet --no-cache-dir fastapi uvicorn prometheus-client boto3 &&
              uvicorn mock_sensor_api:app --host 0.0.0.0 --port 8002"
     ports:
       - "7500:8002"
@@ -47,7 +49,7 @@ services:
       INFERENCE_API_URL: http://inference-api:8000
       SENSOR_API_URL:    http://mock-sensor-api:8002
       DB_PATH:           /data/frontend.db
-      JWT_SECRET:        change-me-in-production
+      JWT_SECRET:        ${JWT_SECRET:-change-me-in-production}
     command: >
       sh -c "pip install --quiet --no-cache-dir -r requirements.txt &&
              uvicorn app:app --host 0.0.0.0 --port 8001"

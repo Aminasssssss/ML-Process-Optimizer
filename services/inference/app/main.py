@@ -12,7 +12,7 @@ from starlette.responses import Response
 from app.model_loader import (
     predict_risk, predict_forecast, load_named_model, WINDOW_SIZE,
     explain_local, get_global_importance,
-)
+)  # WINDOW_SIZE = 12 — used for ForecastRequest validation
 
 app = FastAPI(title="Plant Alarm Inference API", version="0.2.0")
 
@@ -67,7 +67,7 @@ class ForecastRequest(BaseModel):
         ...,
         description=f"Ordered list of sensor readings (oldest first). "
                     f"Minimum {WINDOW_SIZE} entries required.",
-        min_length=1,
+        min_length=WINDOW_SIZE,
     )
     horizon: int = Field(
         default=1,
